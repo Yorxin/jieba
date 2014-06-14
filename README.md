@@ -4,12 +4,10 @@ jieba
 "Jieba" (Chinese for "to stutter") Chinese text segmentation: built to be the best Python Chinese word segmentation module.
 - _Scroll down for English documentation._
 
-
 注意！
-========
-这个branch `jieba3k`是专门用于Python3.x的版本
-=======
-
+-------
+这个branch `wenyan` 是专门用于Python3.x的版本，仅适用于文言文分词工作。
+文言文分词现在还处于测试阶段。
 
 Feature
 ========
@@ -21,34 +19,6 @@ Feature
 * 支持繁体分词
 * 支持自定义词典
 
-
-
-在线演示
-=========
-http://jiebademo.ap01.aws.af.cm/
-
-(Powered by Appfog)
-
-网站代码：https://github.com/fxsjy/jiebademo
-
-
-
-Python 2.x 下的安装
-===================
-* 全自动安装：`easy_install jieba` 或者 `pip install jieba`
-* 半自动安装：先下载http://pypi.python.org/pypi/jieba/ ，解压后运行python setup.py install
-* 手动安装：将jieba目录放置于当前目录或者site-packages目录
-* 通过import jieba 来引用 （第一次import时需要构建Trie树，需要几秒时间）
-
-
-Python 3.x 下的安装
-====================
-* 目前master分支是只支持Python2.x 的
-* Python3.x 版本的分支也已经基本可用： https://github.com/fxsjy/jieba/tree/jieba3k
-
-        git clone https://github.com/fxsjy/jieba.git
-        git checkout jieba3k
-        python setup.py install
 
 结巴分词Java版本
 ================
