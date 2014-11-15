@@ -69,9 +69,9 @@ def initialize(dictionary=None):
         logger.debug("Building prefix dict from %s ..." % abs_path)
         t1 = time.time()
         if abs_path == os.path.join(_curpath, "dict.txt"): #default dictionary
-            cache_file = os.path.join(tempfile.gettempdir(), "jieba.cache")
+            cache_file = os.path.join(tempfile.gettempdir(), "jiebazhc.cache")
         else: #custom dictionary
-            cache_file = os.path.join(tempfile.gettempdir(), "jieba.u%s.cache" % md5(abs_path.encode('utf-8', 'replace')).hexdigest())
+            cache_file = os.path.join(tempfile.gettempdir(), "jiebazhc.u%s.cache" % md5(abs_path.encode('utf-8', 'replace')).hexdigest())
 
         load_from_cache_fail = True
         if os.path.exists(cache_file) and os.path.getmtime(cache_file) > os.path.getmtime(abs_path):
@@ -242,9 +242,9 @@ def cut(sentence, cut_all=False, HMM=True):
     # \r\n|\s : whitespace characters. Will not be handled.
 
     if cut_all:
-        re_han, re_skip = re.compile(r"([\u4E00-\u9FA5]+)", re.U), re.compile(r"[^a-zA-Z0-9+#\n]", re.U)
+        re_han, re_skip = re.compile("([\u4E00-\u9FA5]+)", re.U), re.compile("[^a-zA-Z0-9+#\n]", re.U)
     else:
-        re_han, re_skip = re.compile(r"([\u4E00-\u9FA5a-zA-Z0-9+#&\._]+)", re.U), re.compile(r"(\r\n|\s)", re.U)
+        re_han, re_skip = re.compile("([\u4E00-\u9FA5a-zA-Z0-9+#&\._]+)", re.U), re.compile("(\r\n|\s)", re.U)
     blocks = re_han.split(sentence)
     if cut_all:
         cut_block = __cut_all
