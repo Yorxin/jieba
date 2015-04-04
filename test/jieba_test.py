@@ -1,10 +1,13 @@
 #-*-coding: utf-8 -*-
+from __future__ import unicode_literals, print_function
 import sys
 sys.path.append("../")
-from imp import reload
 import unittest
 import types
 import jieba
+if sys.version_info[0] > 2:
+    from imp import reload
+
 jieba.initialize()
 
 

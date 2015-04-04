@@ -1,4 +1,5 @@
 #encoding=utf-8
+from __future__ import unicode_literals
 from whoosh.analysis import RegexAnalyzer,LowercaseFilter,StopFilter,StemFilter
 from whoosh.analysis import Tokenizer,Token
 from whoosh.lang.porter import stem

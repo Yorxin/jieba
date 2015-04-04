@@ -1,12 +1,14 @@
 jieba
 ========
-"结巴"中文分词：做最好的 Python 中文分词组件
+“结巴”中文分词：做最好的 Python 中文分词组件
+
 "Jieba" (Chinese for "to stutter") Chinese text segmentation: built to be the best Python Chinese word segmentation module.
+
 - _Scroll down for English documentation._
 
 注意！
 -------
-这个branch `wenyan` 是专门用于Python3.x的版本，仅适用于文言文分词工作。
+这个分支 `wenyan` 仅适用于文言文分词工作。
 文言文分词现在还处于测试阶段。
 
 特点
@@ -18,6 +20,7 @@ jieba
 
 * 支持繁体分词
 * 支持自定义词典
+* MIT 授权协议
 
 在线演示
 =========
@@ -30,25 +33,13 @@ http://jiebademo.ap01.aws.af.cm/
 
 安装说明
 =======
-Python 2.x
------------
-* 全自动安装：`easy_install jieba` 或者 `pip install jieba`
-* 半自动安装：先下载 http://pypi.python.org/pypi/jieba/ ，解压后运行 python setup.py install
+
+代码对 Python 2/3 均兼容
+
+* 全自动安装：`easy_install jieba` 或者 `pip install jieba` / `pip3 install jieba`
+* 半自动安装：先下载 http://pypi.python.org/pypi/jieba/ ，解压后运行 `python setup.py install`
 * 手动安装：将 jieba 目录放置于当前目录或者 site-packages 目录
 * 通过 `import jieba` 来引用
-
-Python 3.x
------------
-* 目前 master 分支是只支持 Python2.x 的
-* Python 3.x 版本的分支也已经基本可用： https://github.com/fxsjy/jieba/tree/jieba3k
-
-```shell
-git clone https://github.com/fxsjy/jieba.git
-git checkout jieba3k
-python setup.py install
-```
-
-* 或使用pip3安装： pip3 install jieba3k
 
 算法
 ========
@@ -62,7 +53,7 @@ python setup.py install
 --------
 * `jieba.cut` 方法接受三个输入参数: 需要分词的字符串；cut_all 参数用来控制是否采用全模式；HMM 参数用来控制是否使用 HMM 模型
 * `jieba.cut_for_search` 方法接受两个参数：需要分词的字符串；是否使用 HMM 模型。该方法适合用于搜索引擎构建倒排索引的分词，粒度比较细
-* 注意：待分词的字符串可以是 GBK 字符串、UTF-8 字符串或者 unicode
+* 待分词的字符串可以是 unicode 或 UTF-8 字符串、GBK 字符串。注意：不建议直接输入 GBK 字符串，可能无法预料地错误解码成 UTF-8
 * `jieba.cut` 以及 `jieba.cut_for_search` 返回的结构都是一个可迭代的 generator，可以使用 for 循环来获得分词后得到的每一个词语(unicode)，也可以用 list(jieba.cut(...)) 转化为 list
 
 代码示例( 分词 )
@@ -72,10 +63,10 @@ python setup.py install
 import jieba
 
 seg_list = jieba.cut("我来到北京清华大学", cut_all=True)
-print("Full Mode:", "/ ".join(seg_list))  # 全模式
+print("Full Mode: " + "/ ".join(seg_list))  # 全模式
 
 seg_list = jieba.cut("我来到北京清华大学", cut_all=False)
-print("Default Mode:", "/ ".join(seg_list))  # 精确模式
+print("Default Mode: " + "/ ".join(seg_list))  # 精确模式
 
 seg_list = jieba.cut("他来到了网易杭研大厦")  # 默认是精确模式
 print(", ".join(seg_list))
@@ -97,9 +88,13 @@ print(", ".join(seg_list))
 2) ：添加自定义词典
 ----------------
 
+### 载入词典
+
 * 开发者可以指定自己自定义的词典，以便包含 jieba 词库里没有的词。虽然 jieba 有新词识别能力，但是自行添加新词可以保证更高的正确率
 * 用法： jieba.load_userdict(file_name) # file_name 为自定义词典的路径
-* 词典格式和`dict.txt`一样，一个词占一行；每一行分三部分，一部分为词语，另一部分为词频，最后为词性（可省略），用空格隔开
+* 词典格式和`dict.txt`一样，一个词占一行；每一行分三部分，一部分为词语，另一部分为词频（可省略），最后为词性（可省略），用空格隔开
+* 词频可省略，使用计算出的能保证分出该词的词频
+
 * 范例：
 
     * 自定义词典：https://github.com/fxsjy/jieba/blob/master/test/userdict.txt
@@ -111,6 +106,29 @@ print(", ".join(seg_list))
 
         * 加载自定义词库后：　李小福 / 是 / 创新办 / 主任 / 也 / 是 / 云计算 / 方面 / 的 / 专家 /
 
+### 调整词典
+
+* 使用 `add_word(word, freq=None, tag=None)` 和 `del_word(word)` 可在程序中动态修改词典。
+* 使用 `suggest_freq(segment, tune=True)` 可调节单个词语的词频，使其能（或不能）被分出来。
+
+* 注意：自动计算的词频在使用 HMM 新词发现功能时可能无效。
+
+代码示例：
+
+```pycon
+>>> print('/'.join(jieba.cut('如果放到post中将出错。', HMM=False)))
+如果/放到/post/中将/出错/。
+>>> jieba.suggest_freq(('中', '将'), True)
+494
+>>> print('/'.join(jieba.cut('如果放到post中将出错。', HMM=False)))
+如果/放到/post/中/将/出错/。
+>>> print('/'.join(jieba.cut('「台中」正确应该不会被切开', HMM=False)))
+「/台/中/」/正确/应该/不会/被/切开
+>>> jieba.suggest_freq('台中', True)
+69
+>>> print('/'.join(jieba.cut('「台中」正确应该不会被切开', HMM=False)))
+「/台中/」/正确/应该/不会/被/切开
+```
 
 * "通过用户自定义词典来增强歧义纠错能力" --- https://github.com/fxsjy/jieba/issues/14
 
@@ -178,7 +196,7 @@ jieba.analyse.textrank(raw_text)
 >>> import jieba.posseg as pseg
 >>> words = pseg.cut("我爱北京天安门")
 >>> for w in words:
-...    print(w.word, w.flag)
+...    print('%s %s' % (w.word, w.flag))
 ...
 我 r
 爱 v
@@ -331,13 +349,13 @@ https://github.com/fxsjy/jieba/raw/master/extra_dict/dict.txt.big
 
 结巴分词 C++ 版本
 ----------------
-作者：Aszxqw
-地址：https://github.com/aszxqw/cppjieba
+作者：yanyiwu
+地址：https://github.com/yanyiwu/cppjieba
 
 结巴分词 Node.js 版本
 ----------------
-作者：Aszxqw
-地址：https://github.com/aszxqw/nodejieba
+作者：yanyiwu
+地址：https://github.com/yanyiwu/nodejieba
 
 结巴分词 Erlang 版本
 ----------------
@@ -348,6 +366,11 @@ https://github.com/fxsjy/jieba/raw/master/extra_dict/dict.txt.big
 ----------------
 作者：qinwf
 地址：https://github.com/qinwf/jiebaR
+
+结巴分词 iOS 版本
+----------------
+作者：yanyiwu
+地址：https://github.com/yanyiwu/iosjieba
 
 系统集成
 ========
@@ -361,10 +384,35 @@ https://github.com/fxsjy/jieba/raw/master/extra_dict/dict.txt.big
 
 常见问题
 =========
-1. 模型的数据是如何生成的？https://github.com/fxsjy/jieba/issues/7
-2. 这个库的授权是? https://github.com/fxsjy/jieba/issues/2
 
-* 更多问题请点击：https://github.com/fxsjy/jieba/issues?sort=updated&state=closed
+## 1. 模型的数据是如何生成的？
+
+详见： https://github.com/fxsjy/jieba/issues/7
+
+## 2. “台中”总是被切成“台 中”？（以及类似情况）
+
+P(台中) ＜ P(台)×P(中)，“台中”词频不够导致其成词概率较低
+
+解决方法：强制调高词频
+
+`jieba.add_word('台中')` 或者 `jieba.suggest_freq('台中', True)`
+
+## 3. “今天天气 不错”应该被切成“今天 天气 不错”？（以及类似情况）
+
+解决方法：强制调低词频
+
+`jieba.suggest_freq(('今天', '天气'), True)`
+
+或者直接删除该词 `jieba.del_word('今天天气')`
+
+## 4. 切出了词典中没有的词语，效果不理想？
+
+解决方法：关闭新词发现
+
+`jieba.cut('丰田太省了', HMM=False)`
+`jieba.cut('我们中出了一个叛徒', HMM=False)`
+
+**更多问题请点击**：https://github.com/fxsjy/jieba/issues?sort=updated&state=closed
 
 修订历史
 ==========
@@ -379,9 +427,21 @@ jieba
 Features
 ========
 * Support three types of segmentation mode:
-* 1) Accurate Mode attempts to cut the sentence into the most accurate segmentations, which is suitable for text analysis.
-* 2) Full Mode gets all the possible words from the sentence. Fast but not accurate.
-* 3) Search Engine Mode, based on the Accurate Mode, attempts to cut long words into several short words, which can raise the recall rate. Suitable for search engines.
+
+1. Accurate Mode attempts to cut the sentence into the most accurate segmentations, which is suitable for text analysis.
+2. Full Mode gets all the possible words from the sentence. Fast but not accurate.
+3. Search Engine Mode, based on the Accurate Mode, attempts to cut long words into several short words, which can raise the recall rate. Suitable for search engines.
+
+* Supports Traditional Chinese
+* Supports customized dictionaries
+* MIT License
+
+
+Online demo
+=========
+http://jiebademo.ap01.aws.af.cm/
+
+(Powered by Appfog)
 
 Usage
 ========
@@ -402,8 +462,9 @@ Main Functions
 1) : Cut
 --------
 * The `jieba.cut` function accepts three input parameters: the first parameter is the string to be cut; the second parameter is `cut_all`, controlling the cut mode; the third parameter is to control whether to use the Hidden Markov Model.
-* `jieba.cut` returns an generator, from which you can use a `for` loop to get the segmentation result (in unicode), or `list(jieba.cut( ... ))` to create a list.
 * `jieba.cut_for_search` accepts two parameter: the string to be cut; whether to use the Hidden Markov Model. This will cut the sentence into short words suitable for search engines.
+* The input string can be an unicode/str object, or a str/bytes object which is encoded in UTF-8 or GBK. Note that using GBK encoding is not recommended because it may be unexpectly decoded as UTF-8.
+* `jieba.cut` and `jieba.cut_for_search` returns an generator, from which you can use a `for` loop to get the segmentation result (in unicode), or `list(jieba.cut( ... ))` to create a list.
 
 **Code example: segmentation**
 
@@ -412,10 +473,10 @@ Main Functions
 import jieba
 
 seg_list = jieba.cut("我来到北京清华大学", cut_all=True)
-print("Full Mode:", "/ ".join(seg_list))  # 全模式
+print("Full Mode: " + "/ ".join(seg_list))  # 全模式
 
 seg_list = jieba.cut("我来到北京清华大学", cut_all=False)
-print("Default Mode:", "/ ".join(seg_list))  # 默认模式
+print("Default Mode: " + "/ ".join(seg_list))  # 默认模式
 
 seg_list = jieba.cut("他来到了网易杭研大厦")
 print(", ".join(seg_list))
@@ -438,6 +499,8 @@ Output:
 2) : Add a custom dictionary
 ----------------------------
 
+###　Load dictionary
+
 * Developers can specify their own custom dictionary to be included in the jieba default dictionary. Jieba is able to identify new words, but adding your own new words can ensure a higher accuracy.
 * Usage： `jieba.load_userdict(file_name) # file_name is the path of the custom dictionary`
 * The dictionary format is the same as that of `analyse/idf.txt`: one word per line; each line is divided into two parts, the first is the word itself, the other is the word frequency, separated by a space
@@ -450,6 +513,31 @@ Output:
         [Before]： 李小福 / 是 / 创新 / 办 / 主任 / 也 / 是 / 云 / 计算 / 方面 / 的 / 专家 /
 
         [After]：　李小福 / 是 / 创新办 / 主任 / 也 / 是 / 云计算 / 方面 / 的 / 专家 /
+
+
+### Modify dictionary
+
+* Use `add_word(word, freq=None, tag=None)` and `del_word(word)` to modify the dictionary dynamically in programs.
+* Use `suggest_freq(segment, tune=True)` to adjust the frequency of a single word so that it can (or cannot) be segmented.
+
+* Note that HMM may affect the final result.
+
+Example:
+
+```pycon
+>>> print('/'.join(jieba.cut('如果放到post中将出错。', HMM=False)))
+如果/放到/post/中将/出错/。
+>>> jieba.suggest_freq(('中', '将'), True)
+494
+>>> print('/'.join(jieba.cut('如果放到post中将出错。', HMM=False)))
+如果/放到/post/中/将/出错/。
+>>> print('/'.join(jieba.cut('「台中」正确应该不会被切开', HMM=False)))
+「/台/中/」/正确/应该/不会/被/切开
+>>> jieba.suggest_freq('台中', True)
+69
+>>> print('/'.join(jieba.cut('「台中」正确应该不会被切开', HMM=False)))
+「/台中/」/正确/应该/不会/被/切开
+```
 
 3) : Keyword Extraction
 -----------------------
@@ -487,7 +575,7 @@ Use: `jieba.analyse.textrank(raw_text)`.
 >>> import jieba.posseg as pseg
 >>> words = pseg.cut("我爱北京天安门")
 >>> for w in words:
-...    print(w.word, w.flag)
+...    print('%s %s' % (w.word, w.flag))
 ...
 我 r
 爱 v
@@ -609,8 +697,3 @@ Segmentation speed
 * 400 KB / Second in Default Mode
 * Test Env: Intel(R) Core(TM) i7-2600 CPU @ 3.4GHz；《围城》.txt
 
-Online demo
-=========
-http://jiebademo.ap01.aws.af.cm/
-
-(Powered by Appfog)

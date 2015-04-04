@@ -1,5 +1,6 @@
-import sys,time
+from __future__ import print_function
 import sys
+import time
 sys.path.append("../")
 import jieba
 jieba.initialize()
@@ -13,9 +14,8 @@ words = list(pseg.cut(content))
 t2 = time.time()
 tm_cost = t2-t1
 
-log_f = open("1.log","wb")
-for w in words:
-    log_f.write(bytes(w.word+"/"+w.flag+" ",'utf-8'))
+log_f = open("1.log","w")
+log_f.write(' / '.join(map(str, words)))
 
 print('speed' , len(content)/tm_cost, " bytes/second")
 

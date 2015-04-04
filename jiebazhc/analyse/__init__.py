@@ -1,12 +1,14 @@
 #encoding=utf-8
+from __future__ import absolute_import
 import jieba
+import jieba.posseg
 import os
 from operator import itemgetter
+from .textrank import textrank
 try:
     from .analyzer import ChineseAnalyzer
 except ImportError:
     pass
-from .textrank import textrank
 
 _curpath = os.path.normpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
 abs_path = os.path.join(_curpath, "idf.txt")
@@ -25,7 +27,7 @@ class IDFLoader:
 
     def set_new_path(self, new_idf_path):
         if self.path != new_idf_path:
-            content = open(new_idf_path, 'r', encoding='utf-8').read()
+            content = open(new_idf_path, 'rb').read().decode('utf-8')
             idf_freq = {}
             lines = content.rstrip('\n').split('\n')
             for line in lines:
@@ -54,25 +56,36 @@ def set_stop_words(stop_words_path):
     if not os.path.exists(abs_path):
         raise Exception("jieba: path does not exist: " + abs_path)
     content = open(abs_path,'rb').read().decode('utf-8')
-    lines = content.replace("\r","").split('\n')
+    lines = content.replace("\r", "").split('\n')
     for line in lines:
         STOP_WORDS.add(line)
 
-def extract_tags(sentence, topK=20, withWeight=False):
+def extract_tags(sentence, topK=20, withWeight=False, allowPOS=[]):
     """
     Extract keywords from sentence using TF-IDF algorithm.
     Parameter:
         - topK: return how many top keywords. `None` for all possible words.
         - withWeight: if True, return a list of (word, weight);
                       if False, return a list of words.
+        - allowPOS: the allowed POS list eg. ['ns', 'n', 'vn', 'v','nr'].
+                    if the POS of w is not in this list,it will be filtered.
     """
     global STOP_WORDS, idf_loader
 
     idf_freq, median_idf = idf_loader.get_idf()
 
-    words = jieba.cut(sentence)
+    if allowPOS:
+        allowPOS = frozenset(allowPOS)
+        words = jieba.posseg.cut(sentence)
+    else:
+        words = jieba.cut(sentence)
     freq = {}
     for w in words:
+        if allowPOS:
+            if w.flag not in allowPOS:
+                continue
+            else:
+                w = w.word
         if len(w.strip()) < 2 or w.lower() in STOP_WORDS:
             continue
         freq[w] = freq.get(w, 0.0) + 1.0
